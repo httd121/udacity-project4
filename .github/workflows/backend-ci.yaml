@@ -5,100 +5,64 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'starter/backend/**'
 
 jobs:
-  run-test:
+  Linting:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: starter/backend
+    environment: Devlopmnet Environment
 
     steps:
-    - name: Check out repository
+    - name: Check the Repository
       uses: actions/checkout@v3
 
-    - name: Use Python
-      uses: actions/setup-python@v5
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
-    
-    - name: caches pipenv
-      id: restore-dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.local/share/virtualenvs
-        key: pipenv-${{ hashFiles('Pipfile.lock') }}
-        restore-keys: |
-          pipenv-${{ hashFiles('Pipfile.lock') }}
-          pipenv-
-    
-    - name: Install pipenv
-      run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        python-version: "3.10"
 
-    - name: Install dependencies
-      run: pipenv install
+    - name: Install Dependencies
+      working-directory: starter/backend 
+      run:  |
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pip install flake8
 
-    - name: Run test
-      run: pipenv run test
+    - name: Checkout Run Lint
+      run: cd starter/backend && pipenv run lint
 
-  run-lint:
+  Test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: starter/backend
-
     steps:
-    - name: Check out repository
+    - name: Check the Repository
       uses: actions/checkout@v3
 
-    - name: Use Python
-      uses: actions/setup-python@v5
+    - name: Use Python 3
+      uses:  actions/setup-python@v4
       with:
-        python-version: '3.10'
-    
-    - name: caches pipenv
-      id: restore-dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.local/share/virtualenvs
-        key: pipenv-${{ hashFiles('Pipfile.lock') }}
-        restore-keys: |
-          pipenv-${{ hashFiles('Pipfile.lock') }}
-          pipenv-
-    
-    - name: Install pipenv
-      run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        python-version: "3.10"
 
-    - name: Install dependencies
-      run: pipenv install --dev
+    - name: Install Dependencies
+      working-directory: starter/backend 
+      run:  |
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pip install flake8
 
-    - name: Install flake
-      run: pipenv install flake8
-
-    - name: Run lint
-      run: pipenv run lint
-  
-  build:
-    needs: [run-test, run-lint]
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: starter/backend
-
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: build image
-      run: docker build --tag mp-backend:latest .
-    # build docker
-    # build docker
-
-
+    - name: Test
+      run: cd starter/backend && pipenv install pytest && pipenv run test
 
       
+  Build:
+    needs: [Linting, Test]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check the Repository
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: |
+        cd starter/backend
+        docker build --tag mp-backend:latest .
+
