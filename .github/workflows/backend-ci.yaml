@@ -1,0 +1,103 @@
+name: Backend Continuous Integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'starter/backend/**'
+
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: starter/backend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Use Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: caches pipenv
+      id: restore-dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/share/virtualenvs
+        key: pipenv-${{ hashFiles('Pipfile.lock') }}
+        restore-keys: |
+          pipenv-${{ hashFiles('Pipfile.lock') }}
+          pipenv-
+    
+    - name: Install pipenv
+      run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+
+    - name: Install dependencies
+      run: pipenv install
+
+    - name: Run test
+      run: pipenv run test
+
+  run-lint:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: starter/backend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Use Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: caches pipenv
+      id: restore-dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/share/virtualenvs
+        key: pipenv-${{ hashFiles('Pipfile.lock') }}
+        restore-keys: |
+          pipenv-${{ hashFiles('Pipfile.lock') }}
+          pipenv-
+    
+    - name: Install pipenv
+      run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+
+    - name: Install dependencies
+      run: pipenv install --dev
+
+    - name: Install flake
+      run: pipenv install flake8
+
+    - name: Run lint
+      run: pipenv run lint
+  
+  build:
+    needs: [run-test, run-lint]
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: starter/backend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: build image
+      run: docker build --tag mp-backend:latest .
+    # build docker
+
+
+
+      
