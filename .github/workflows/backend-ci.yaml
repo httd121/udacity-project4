@@ -8,7 +8,7 @@ on:
 
 jobs:
   Linting:
-    runs-on: ${{ fromJSON('["ubuntu-latest", "self-hosted"]')[github.repository == 'github/docs-internal'] }}
+    runs-on: ubuntu-22.04
 
     environment: Devlopmnet Environment
 
@@ -32,7 +32,7 @@ jobs:
       run: cd starter/backend && pipenv run lint
 
   Test:
-    runs-on: ${{ fromJSON('["ubuntu-latest", "self-hosted"]')[github.repository == 'github/docs-internal'] }}
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Check the Repository
