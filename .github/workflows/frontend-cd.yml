@@ -7,7 +7,72 @@ on:
       - main
 
 jobs:
+  run-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: starter/frontend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    
+    - name: caches npm
+      id: restore-dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: npm-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ hashFiles('**/package-lock.json') }}
+          npm-
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run test
+      run: CI=true npm test
+
+  run-lint:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: starter/frontend
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: caches npm
+      id: restore-dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: npm-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ hashFiles('**/package-lock.json') }}
+          npm-
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run lint
+      run: npm run lint
+  
   build:
+    needs: [run-test, run-lint]
     runs-on: ubuntu-latest
 
     steps:
@@ -71,7 +136,7 @@ jobs:
       
       - name: Kubeconfig Auth
         run: |
-          aws eks update-kubeconfig --name ops-prj4 --region us-east-1
+          aws eks update-kubeconfig --name cluster --region us-east-1
       
       - name: Deploy to Kubernetes
         run: |
