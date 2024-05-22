@@ -117,20 +117,12 @@ jobs:
           access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           region: us-east-1
-
-      - name: Build Docker image
+    
+      - name: Build, tag, and push image to Amazon ECR
         run: |
-          cd ./starter/frontend
-          docker build -t frontend --build-arg=REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} .
-      
-      - name: Tag Docker Image
-        run: |
-          cd ./starter/frontend
-          docker tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/frontend:${GITHUB_SHA}
-          
-      - name: Push Docker image to ECR
-        run: |
-          cd ./starter/frontend
+          export REACT_APP_MOVIE_API_URL=$(kubectl get services --namespace default backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo $REACT_APP_MOVIE_API_URL
+          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/frontend:${GITHUB_SHA} .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/frontend:${GITHUB_SHA}
       
       - name: Kubeconfig Auth
