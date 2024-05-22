@@ -63,7 +63,7 @@ jobs:
         run: |
           cd ./starter/frontend
           docker tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/frontend:${GITHUB_SHA}
-
+          
       - name: Push Docker image to ECR
         run: |
           cd ./starter/frontend
@@ -71,7 +71,7 @@ jobs:
       
       - name: Kubeconfig Auth
         run: |
-          aws eks update-kubeconfig --name ops-prj4 --region us-east-1
+          aws eks update-kubeconfig --name cluster --region us-east-1
       
       - name: Deploy to Kubernetes
         run: |
